@@ -1,5 +1,7 @@
-import pygame, random, sys, time
+import pygame, os, random, sys, time
 from pygame.locals import *
+path = os.path.abspath(sys.argv[0])
+path = path.replace("Swappy Bird.py", "")
 def draw_text(screen, text, size, color, x, y):
     font = pygame.font.SysFont(None, size)
     img = font.render(text, True, color)
@@ -18,20 +20,20 @@ def game():
     PIPE_GAP = 150
     SCORE = 0
     SPEED_TRACK = 0
-    wing = 'assets/audio/wing.wav'
-    hit = 'assets/audio/hit.wav'
-    bgmusic = 'assets/audio/Fields of Ice.mp3'
-    game_over_music = None
-    GAME_OVER = 'assets/sprites/gameover.png'
+    wing = path+'assets/audio/wing.wav'
+    hit = path+'assets/audio/hit.wav'
+    bgmusic = path+'assets/audio/Fields of Ice.mp3'
+    game_over_music = path+'assets/audio/Music Box Game Over III.mp3'
+    GAME_OVER = path+'assets/sprites/gameover.png'
     pygame.mixer.init()
     wing_sound = pygame.mixer.Sound(wing)
     hit_sound = pygame.mixer.Sound(hit)
     class Bird(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
-            self.images = [pygame.image.load('assets/sprites/bluebird-upflap.png').convert_alpha(),
-                           pygame.image.load('assets/sprites/bluebird-midflap.png').convert_alpha(),
-                           pygame.image.load('assets/sprites/bluebird-downflap.png').convert_alpha()]
+            self.images = [pygame.image.load(path+'assets/sprites/bluebird-upflap.png').convert_alpha(),
+                           pygame.image.load(path+'assets/sprites/bluebird-midflap.png').convert_alpha(),
+                           pygame.image.load(path+'assets/sprites/bluebird-downflap.png').convert_alpha()]
             self.speed = SPEED
             self.current_image = 0
             self.image = self.images[self.current_image]
@@ -53,7 +55,7 @@ def game():
     class Pipe(pygame.sprite.Sprite):
         def __init__(self, inverted, xpos, ysize):
             pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load('assets/sprites/pipe-green.png').convert_alpha()
+            self.image = pygame.image.load(path+'assets/sprites/pipe-green.png').convert_alpha()
             self.image = pygame.transform.scale(self.image, (PIPE_WIDTH, PIPE_HEIGHT))
             self.rect = self.image.get_rect()
             self.rect[0] = xpos
@@ -68,7 +70,7 @@ def game():
     class Ground(pygame.sprite.Sprite):
         def __init__(self, xpos):
             pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load('assets/sprites/base.png').convert_alpha()
+            self.image = pygame.image.load(path+'assets/sprites/base.png').convert_alpha()
             self.image = pygame.transform.scale(self.image, (GROUND_WIDTH, GROUND_HEIGHT))
             self.mask = pygame.mask.from_surface(self.image)
             self.rect = self.image.get_rect()
@@ -85,10 +87,10 @@ def game():
         return pipe, pipe_inverted
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption('Flappy Bird')
-    BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
+    pygame.display.set_caption('Swappy Bird')
+    BACKGROUND = pygame.image.load(path+'assets/sprites/background-day.png')
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
-    BEGIN_IMAGE = pygame.image.load('assets/sprites/message.png').convert_alpha()
+    BEGIN_IMAGE = pygame.image.load(path+'assets/sprites/message.png').convert_alpha()
     begin_rect = BEGIN_IMAGE.get_rect()
     begin_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
     bird_group = pygame.sprite.Group()
@@ -180,8 +182,8 @@ def game():
             game_over_rect = game_over_image.get_rect()
             game_over_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
             # Pause briefly and display game over screen
-            '''pygame.mixer.music.load(game_over_music)
-            pygame.mixer.music.play(1)'''
+            pygame.mixer.music.load(game_over_music)
+            pygame.mixer.music.play(1)
             # Display game over image
             screen.blit(game_over_image, game_over_rect)
             pygame.display.update()
