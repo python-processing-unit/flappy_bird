@@ -5,16 +5,30 @@ import shelve
 import sys
 import time
 from pygame.locals import *
+
+def resource_path(relative_path):
+    """ Get the absolute path to the resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 path = os.path.abspath(sys.argv[0])
 path = path.replace(os.path.basename(path),"")
 save_path = os.path.join(path, "save")
 shelve_file = os.path.join(save_path,"SAVE.dat")
+
 def check_file(filepath: str) -> bool:
     return os.path.isfile(filepath)
+
 def draw_text(screen, text, size, color, x, y):
     font = pygame.font.SysFont(None, size)
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
+
 def game():
     # VARIABLES
     SCREEN_WIDTH = 1000
@@ -36,20 +50,20 @@ def game():
             HIGH_SCORE = 0
             save_file['score'] = 0
     SPEED_TRACK = 0
-    wing = path+'assets/audio/wing.wav'
-    hit = path+'assets/audio/hit.wav'
-    bgmusic = path+'assets/audio/Fields of Ice.mp3'
-    game_over_music = path+'assets/audio/Music Box Game Over III.mp3'
-    GAME_OVER = path+'assets/sprites/gameover.png'
+    wing = resource_path('assets/audio/wing.wav')
+    hit = resource_path('assets/audio/hit.wav')
+    bgmusic = resource_path('assets/audio/Fields of Ice.mp3')
+    game_over_music = resource_path('assets/audio/Music Box Game Over III.mp3')
+    GAME_OVER = resource_path('assets/sprites/gameover.png')
     pygame.mixer.init()
     wing_sound = pygame.mixer.Sound(wing)
     hit_sound = pygame.mixer.Sound(hit)
     class Bird(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
-            self.images = [pygame.image.load(path+'assets/sprites/bluebird-upflap.png').convert_alpha(),
-                           pygame.image.load(path+'assets/sprites/bluebird-midflap.png').convert_alpha(),
-                           pygame.image.load(path+'assets/sprites/bluebird-downflap.png').convert_alpha()]
+            self.images = [pygame.image.load(resource_path('assets/sprites/bluebird-upflap.png')).convert_alpha(),
+                           pygame.image.load(resource_path('assets/sprites/bluebird-midflap.png')).convert_alpha(),
+                           pygame.image.load(resource_path('assets/sprites/bluebird-downflap.png')).convert_alpha()]
             self.speed = SPEED
             self.current_image = 0
             self.image = self.images[self.current_image]
@@ -71,11 +85,11 @@ def game():
     class Pipe(pygame.sprite.Sprite):
         def __init__(self, inverted, xpos, ysize):
             pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load(path+'assets/sprites/pipe-green.png').convert_alpha()
+            self.image = pygame.image.load(resource_path('assets/sprites/pipe-green.png')).convert_alpha()
             self.image = pygame.transform.scale(self.image, (PIPE_WIDTH, PIPE_HEIGHT))
             self.rect = self.image.get_rect()
             self.rect[0] = xpos
-            if inverted:
+            if(inverted):
                 self.image = pygame.transform.flip(self.image, False, True)
                 self.rect[1] = - (self.rect[3] - ysize)
             else:
@@ -86,7 +100,7 @@ def game():
     class Ground(pygame.sprite.Sprite):
         def __init__(self, xpos):
             pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load(path+'assets/sprites/base.png').convert_alpha()
+            self.image = pygame.image.load(resource_path('assets/sprites/base.png')).convert_alpha()
             self.image = pygame.transform.scale(self.image, (GROUND_WIDTH, GROUND_HEIGHT))
             self.mask = pygame.mask.from_surface(self.image)
             self.rect = self.image.get_rect()
@@ -104,9 +118,9 @@ def game():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('Swappy Bird')
-    BACKGROUND = pygame.image.load(path+'assets/sprites/background-day.png')
+    BACKGROUND = pygame.image.load(resource_path('assets/sprites/background-day.png'))
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
-    BEGIN_IMAGE = pygame.image.load(path+'assets/sprites/message.png').convert_alpha()
+    BEGIN_IMAGE = pygame.image.load(resource_path('assets/sprites/message.png')).convert_alpha()
     begin_rect = BEGIN_IMAGE.get_rect()
     begin_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
     bird_group = pygame.sprite.Group()
@@ -123,23 +137,23 @@ def game():
         pipe_group.add(pipes[1])
     clock = pygame.time.Clock()
     begin = True
-    while begin:
+    while(begin):
         clock.tick(15)
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if(event.type == QUIT):
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE or event.key == K_UP:
+            if(event.type == KEYDOWN):
+                if(event.key == K_SPACE or event.key == K_UP):
                     bird.bump()
                     wing_sound.play()
                     begin = False
-                if event.key == K_q:
+                if(event.key == K_q):
                     pygame.quit()
                     sys.exit()
         screen.blit(BACKGROUND, (0, 0))
         screen.blit(BEGIN_IMAGE, (120, 150))
-        if is_off_screen(ground_group.sprites()[0]):
+        if(is_off_screen(ground_group.sprites()[0])):
             ground_group.remove(ground_group.sprites()[0])
             new_ground = Ground(GROUND_WIDTH - 20)
             ground_group.add(new_ground)
@@ -149,25 +163,24 @@ def game():
         ground_group.draw(screen)
         draw_text(screen, f'Score: {SCORE}', 32, (255, 255, 255), 10, 10)
         draw_text(screen, f'High Score: {HIGH_SCORE}', 32, (255, 255, 255), 825, 10)
-        ##########################################################################################################################################################################
         pygame.display.update()
     pygame.mixer.music.load(bgmusic)
     pygame.mixer.music.play(-1)  # The -1 makes it loop indefinitely
-    while True:
+    while(True):
         clock.tick(GAME_SPEED)
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if(event.type == QUIT):
                 pygame.quit()
                 return  # Exit the game loop
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE or event.key == K_UP:
+            if(event.type == KEYDOWN):
+                if(event.key == K_SPACE or event.key == K_UP):
                     bird.bump()
                     wing_sound.play()
-                if event.key == K_q:
+                if(event.key == K_q):
                     pygame.quit()
                     sys.exit()
         screen.blit(BACKGROUND, (0, 0))
-        if is_off_screen(ground_group.sprites()[0]):
+        if(is_off_screen(ground_group.sprites()[0])):
             ground_group.remove(ground_group.sprites()[0])
             new_ground = Ground(GROUND_WIDTH - 20)
             ground_group.add(new_ground)
@@ -196,7 +209,7 @@ def game():
         draw_text(screen, f'High Score: {HIGH_SCORE}', 32, (255, 255, 255), 825, 10)
         pygame.display.update()
         # Collision detection and game over handling
-        if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask) or bird.rect[1] < 0):
+        if(pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
             hit_sound.play()
             with shelve.open(shelve_file) as save_file:
                 save_file['score'] = HIGH_SCORE
@@ -212,5 +225,5 @@ def game():
             pygame.display.update()
             time.sleep(7)
             break
-while True:
+while(True):
     game()
