@@ -1,7 +1,16 @@
-import pygame, os, random, sys, time
+import pygame
+import os
+import random
+import shelve
+import sys
+import time
 from pygame.locals import *
 path = os.path.abspath(sys.argv[0])
-path = path.replace("Swappy Bird.py", "")
+path = path.replace(os.path.basename(path),"")
+save_path = os.path.join(path, "save")
+shelve_file = os.path.join(save_path,"SAVE.dat")
+def check_file(filepath: str) -> bool:
+    return os.path.isfile(filepath)
 def draw_text(screen, text, size, color, x, y):
     font = pygame.font.SysFont(None, size)
     img = font.render(text, True, color)
@@ -19,6 +28,13 @@ def game():
     PIPE_HEIGHT = 500
     PIPE_GAP = 150
     SCORE = 0
+    if(check_file(shelve_file+".dat")):
+        with shelve.open(shelve_file) as save_file:
+            HIGH_SCORE = save_file['score']
+    else:
+        with shelve.open(shelve_file) as save_file:
+            HIGH_SCORE = 0
+            save_file['score'] = 0
     SPEED_TRACK = 0
     wing = path+'assets/audio/wing.wav'
     hit = path+'assets/audio/hit.wav'
@@ -132,6 +148,8 @@ def game():
         bird_group.draw(screen)
         ground_group.draw(screen)
         draw_text(screen, f'Score: {SCORE}', 32, (255, 255, 255), 10, 10)
+        draw_text(screen, f'High Score: {HIGH_SCORE}', 32, (255, 255, 255), 825, 10)
+        ##########################################################################################################################################################################
         pygame.display.update()
     pygame.mixer.music.load(bgmusic)
     pygame.mixer.music.play(-1)  # The -1 makes it loop indefinitely
@@ -172,11 +190,16 @@ def game():
         bird_group.draw(screen)
         pipe_group.draw(screen)
         ground_group.draw(screen)
+        if(SCORE>HIGH_SCORE):
+            HIGH_SCORE = SCORE
         draw_text(screen, f'Score: {SCORE}', 32, (255, 255, 255), 10, 10)
+        draw_text(screen, f'High Score: {HIGH_SCORE}', 32, (255, 255, 255), 825, 10)
         pygame.display.update()
         # Collision detection and game over handling
         if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask) or bird.rect[1] < 0):
             hit_sound.play()
+            with shelve.open(shelve_file) as save_file:
+                save_file['score'] = HIGH_SCORE
             # Load game over image and center it
             game_over_image = pygame.image.load(GAME_OVER).convert_alpha()
             game_over_rect = game_over_image.get_rect()
